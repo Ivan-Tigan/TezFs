@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <WarnOn>3390;$(WarnOn)</WarnOn>
+        <PackageId>HOG.TezFs</PackageId>
+        <Title>HOG.TezFs</Title>
+        <Authors>Higher Order Games</Authors>
+        <Description>Ultra high level F# Tezos library.
+</Description>
+        <PackageVersion>1.0.7</PackageVersion>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Library.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.Net.Http" Version="4.3.4" />
+      <PackageReference Update="FSharp.Core" Version="5.0.0" />
+      <PackageReference Include="zxcvbn-core" Version="7.0.92" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\netezos\Netezos\Netezos.csproj" />
+    </ItemGroup>
+
+</Project>
