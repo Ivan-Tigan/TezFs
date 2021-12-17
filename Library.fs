@@ -16,7 +16,6 @@ open Newtonsoft.Json
 open Newtonsoft.Json.Linq
 //open FSharp.Interop.Dynamic
 open System.Text
-let x : Signature = failwith ""
 
 let rec private tails = function [] -> [] | (x::xs) as vs -> let rest = tails xs in if rest = [[]] then [vs] else vs::rest
 let rec private inits = function [] -> [] | xs -> let init = List.take (xs.Length - 1) xs in let rest = inits init in (if rest = [[]] then [xs] else xs::rest)
@@ -25,7 +24,8 @@ let private substrings x = x |> (List.ofSeq >> sublists >> List.map (fun x -> ne
 
 let random_account() = Key()
 let acc_base58 = Key.FromBase58
-let florence_rpc = new TezosRpc("https://florencenet.api.tez.ie") 
+let florence_rpc = new TezosRpc("https://florencenet.api.tez.ie")
+
 let test_key = Key.FromBase58("edskRsRU7Kv2QrBFiUAmfnXwy9Fxc4M3F9CjYacndGxYzJW3SiLYXVQRaHrDsPXDA7uEkoz3UQ3sGxPhNd1J92SNm6paip8F5A")
 let test_pub_1 = "tz1abwEWbK7NZX1GKvsso9B3g3z4kRVSA9ri"
 let signature = test_key.Sign "Hello this is me"
@@ -41,7 +41,7 @@ let reveal_txn (key:Key) =
     t.PublicKey <- key.PubKey.GetBase58()
     t.GasLimit <- 1500
     t.Fee <- 1000L // 0.001 tez
-    t
+    t 
 let send_tez_txn (key:Key) destination amount =
     let t = new TransactionContent() in
     t.Source <- key.PubKey.Address
@@ -54,6 +54,7 @@ let get_head (rpc:TezosRpc) =  rpc.Blocks.Head.Hash.GetAsync<string>() |> Async.
 let get_counter (rpc:TezosRpc) address = rpc.Blocks.Head.Context.Contracts.[address].Counter.GetAsync<int>() |> Async.AwaitTask
 let forge head content = (new LocalForge()).ForgeOperationGroupAsync(head, content) |> Async.AwaitTask
 let inject (rpc:TezosRpc) (msg_and_sig:byte[]) = rpc.Inject.Operation.PostAsync(msg_and_sig, false, Chain.Main)  |> Async.AwaitTask
+
 let call_entrypoint_txn (rpc:TezosRpc) (key:Key) contract_address entrypoint (arguments:'a) =
     async{
         let! code = rpc.Blocks.Head.Context.Contracts.[contract_address].Script.GetCodeAsync() |> Async.AwaitTask
@@ -74,17 +75,19 @@ let call_entrypoint_txn (rpc:TezosRpc) (key:Key) contract_address entrypoint (ar
     
 type tx = {to_:string; token_id:int; amount:int} 
 type transfer = {from_ : string; txs: tx list}  
-let send_batch_txns (rpc:TezosRpc) (key:Key) txs =
+let send_batch_txns (check_revealed: Key -> Async<bool>) (rpc:TezosRpc) (key:Key) (txs: #ManagerOperationContent[]) =
     async {
         let address = key.PubKey.Address 
         let! head = get_head rpc
-        let! counter = get_counter rpc address 
-        let content : ManagerOperationContent[] = txs |> Array.mapi (fun i (t:TransactionContent) ->  let _ = t.Counter <- counter + i + 1 in t :> ManagerOperationContent)
+        let! counter = get_counter rpc address
+        let! is_revealed = check_revealed key
+        let txs = if not is_revealed then Array.append [|reveal_txn key :> ManagerOperationContent|] txs else txs
+        let content : ManagerOperationContent[] = txs |> Array.mapi (fun i t ->  let _ = t.Counter <- counter + i + 1 in t)
         let! bytes = forge head content
         // sign the operation bytes
         let signature: Signature = (key.SignOperation(bytes))
         let signature_bytes = signature.ToBytes()
-        let msg_and_sig = Array.concat[bytes;signature_bytes]
+        let msg_and_sig = Array.concat [bytes;signature_bytes]
         // inject the operation and get its id (operation hash)
         let! result = inject rpc msg_and_sig
         return result

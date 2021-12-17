@@ -9,7 +9,7 @@
         <Authors>Higher Order Games</Authors>
         <Description>Ultra high level F# Tezos library.
 </Description>
-        <PackageVersion>1.0.7</PackageVersion>
+        <PackageVersion>1.0.8</PackageVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
@@ -18,13 +18,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="ModifiedNetezos" Version="1.0.6" />
       <PackageReference Include="System.Net.Http" Version="4.3.4" />
       <PackageReference Update="FSharp.Core" Version="5.0.0" />
       <PackageReference Include="zxcvbn-core" Version="7.0.92" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\netezos\Netezos\Netezos.csproj" />
     </ItemGroup>
 
 </Project>
