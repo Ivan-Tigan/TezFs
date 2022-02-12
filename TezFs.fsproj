@@ -9,8 +9,10 @@
         <Authors>Higher Order Games</Authors>
         <Description>Ultra high level F# Tezos library.
 </Description>
-        <PackageVersion>1.0.8</PackageVersion>
+        <PackageVersion>1.0.9</PackageVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageReleaseNotes>FIx small but critical bug caused by change to the rpc api.
+/head/hash instead of /head/hash/ </PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,6 +20,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="FSharp.Interop.Dynamic" Version="5.0.1.268" />
+      <PackageReference Include="HOG.HTTP" Version="1.0.0" />
       <PackageReference Include="ModifiedNetezos" Version="1.0.6" />
       <PackageReference Include="System.Net.Http" Version="4.3.4" />
       <PackageReference Update="FSharp.Core" Version="5.0.0" />
